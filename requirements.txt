@@ -1,0 +1,30 @@
+# YOLOv8x Inference Optimisation — dependencies
+#
+# Install: pip install -r requirements.txt
+#
+# Note: in Google Colab, run setup cell in notebook.ipynb instead —
+# Colab requires a runtime restart after the initial numpy environment fix.
+
+# Core
+torch>=2.0.0
+torchvision>=0.15.0
+ultralytics>=8.0.0
+
+# ONNX export and inference
+onnx>=1.14.0
+onnxruntime-gpu>=1.16.0       # GPU inference; use onnxruntime for CPU-only
+onnxmltools>=1.11.0           # FP16 graph conversion
+onnxconverter-common>=1.13.0  # required by onnxmltools
+
+# Benchmarking and profiling
+numpy>=1.24.0
+scipy>=1.10.0
+opencv-python-headless>=4.8.0
+
+# Evaluation
+# TrackEval is installed via git clone (see README), not pip
+
+# Utilities
+tqdm>=4.65.0
+matplotlib>=3.7.0
+kaggle>=1.5.0
