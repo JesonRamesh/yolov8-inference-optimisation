@@ -6,7 +6,7 @@
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-orange)](https://pytorch.org)
 [![ONNX Runtime](https://img.shields.io/badge/ONNXRuntime-1.20-green)](https://onnxruntime.ai)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/JesonRamesh/yolov8-inference-optimization/blob/main/notebook.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/JesonRamesh/yolov8-inference-optimisation/blob/main/notebook.ipynb)
 
 ---
 
@@ -190,8 +190,8 @@ The ONNX FP32 HOTA (56.07) is slightly lower than the companion repo's equivalen
 ### Local / command line
 
 ```bash
-git clone https://github.com/JesonRamesh/yolov8-inference-optimization
-cd yolov8-inference-optimization
+git clone https://github.com/JesonRamesh/yolov8-inference-optimisation
+cd yolov8-inference-optimisation
 
 pip install -r requirements.txt
 git clone https://github.com/JonathonLuiten/TrackEval.git
@@ -208,7 +208,7 @@ python profile.py     # stage breakdown + Chrome trace (~3 min)
 ## Repository Structure
 
 ````
-yolov8-inference-optimization/
+yolov8-inference-optimisation/
 ├── config.py        # all paths, benchmark settings, model configs
 ├── export.py        # ONNX FP32/FP16 export + INT8 PTQ calibration
 ├── benchmark.py     # latency benchmarking across all backends
