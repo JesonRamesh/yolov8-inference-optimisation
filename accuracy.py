@@ -188,29 +188,29 @@ def preprocess_frame(img_path: str) -> tuple:
 def postprocess(output: np.ndarray, orig_h: int, orig_w: int,
                 conf_thresh: float = config.CONF_THRESH) -> np.ndarray:
     """
-    Parse YOLOv8 ONNX output to [x1,y1,x2,y2,conf] detections.
+    Parse YOLOv8 ONNX output to [x1,y1,x2,y2,conf] detections with NMS.
 
-    YOLOv8 ONNX output shape: (1, 84, num_anchors)
+    YOLOv8 ONNX output shape: (1, 84, 8400)
       - 84 = 4 (cx,cy,w,h) + 80 (COCO class scores)
-      - We filter to class 0 (person) only
-
-    Boxes are in 640×640 space; we rescale to original image dimensions.
+      - We filter to class 0 (person) only, then apply NMS
     """
-    preds = output[0]                       # (84, num_anchors)
-    preds = preds.transpose(1, 0)          # (num_anchors, 84)
+    import torch
+    import torchvision
 
-    cx, cy, w, h = preds[:,0], preds[:,1], preds[:,2], preds[:,3]
-    class_scores = preds[:, 4:]            # (num_anchors, 80)
-    person_scores = class_scores[:, config.PERSON_CLASS_ID]  # class 0
+    preds = output[0].transpose(1, 0)   # (8400, 84)
 
-    mask   = person_scores >= conf_thresh
+    cx, cy = preds[:, 0], preds[:, 1]
+    w,  h  = preds[:, 2], preds[:, 3]
+    person_scores = preds[:, 4 + config.PERSON_CLASS_ID]
+
+    mask = person_scores >= conf_thresh
+    if mask.sum() == 0:
+        return np.empty((0, 5), dtype=np.float32)
+
     cx, cy, w, h = cx[mask], cy[mask], w[mask], h[mask]
     scores = person_scores[mask]
 
-    if len(scores) == 0:
-        return np.empty((0, 5), dtype=np.float32)
-
-    # cx,cy,w,h → x1,y1,x2,y2 in original image space
+    # Rescale to original image coordinates
     scale_x = orig_w / config.INPUT_SIZE
     scale_y = orig_h / config.INPUT_SIZE
     x1 = (cx - w / 2) * scale_x
@@ -218,9 +218,17 @@ def postprocess(output: np.ndarray, orig_h: int, orig_w: int,
     x2 = (cx + w / 2) * scale_x
     y2 = (cy + h / 2) * scale_y
 
-    dets = np.stack([x1, y1, x2, y2, scores], axis=1).astype(np.float32)
-    return dets
+    # NMS — removes duplicate boxes for the same person
+    boxes_t  = torch.from_numpy(
+        np.stack([x1, y1, x2, y2], axis=1)).float()
+    scores_t = torch.from_numpy(scores).float()
+    keep     = torchvision.ops.nms(boxes_t, scores_t, iou_threshold=0.45)
+    keep     = keep.numpy()
 
+    dets = np.stack([x1[keep], y1[keep],
+                     x2[keep], y2[keep],
+                     scores[keep]], axis=1).astype(np.float32)
+    return dets
 
 # ── Full pipeline run ─────────────────────────────────────────────────────
 
